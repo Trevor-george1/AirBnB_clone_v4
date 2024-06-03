@@ -18,6 +18,7 @@ import json
 import os
 import pep8
 import unittest
+from models import storage
 DBStorage = db_storage.DBStorage
 classes = {"Amenity": Amenity, "City": City, "Place": Place,
            "Review": Review, "State": State, "User": User}
@@ -68,7 +69,7 @@ test_db_storage.py'])
                             "{:s} method needs a docstring".format(func[0]))
 
 
-class TestDBStorage(unittest.TestCase):
+class TestFileStorage(unittest.TestCase):
     """Test the FileStorage class"""
     @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
     def test_all_returns_dict(self):
@@ -87,32 +88,23 @@ class TestDBStorage(unittest.TestCase):
     def test_save(self):
         """Test that save properly saves objects to file.json"""
 
+    def test_get_db(self):
+        """ Tests method for obtaining an instance db storage"""
+        dic = {"name": "Cundinamarca"}
+        instance = State(**dic)
+        storage.new(instance)
+        storage.save()
+        get_instance = storage.get(State, instance.id)
+        self.assertEqual(get_instance, instance)
 
-class TestDBStorage(unittest.TestCase):
-    """Test the DBstorage"""
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db',
-                     "not testing db storage")
-    def test_get(self):
-        """Test that get returns specific object"""
-        new_state = State(name="New York")
-        new_state.save()
-        new_user = User(email="bob@foobar.com", password="password")
-        new_user.save()
-        self.assertIs(new_state, models.storage.get("State", new_state.id))
-        self.assertIs(None, models.storage.get("State", "blah"))
-        # self.assertIs(None, models.storage.get("blah", "blah"))
-        self.assertIs(new_user, models.storage.get("User", new_user.id))
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db',
-                     "not testing db storage")
     def test_count(self):
-        """Test that get returns specific object"""
-        initial_count = models.storage.count()
-        self.assertEqual(models.storage.count("Blah"), 0)
-        new_state = State(name="Florida")
-        new_state.save()
-        new_user = User(email="boo@foobar.com", password="password")
-        new_user.save()
-        self.assertEqual(models.storage.count("State"), initial_count + 1)
-        self.assertEqual(models.storage.count(), initial_count + 2)
+        """ Tests count method db storage """
+        dic = {"name": "Vecindad"}
+        state = State(**dic)
+        storage.new(state)
+        dic = {"name": "Mexico", "state_id": state.id}
+        city = City(**dic)
+        storage.new(city)
+        storage.save()
+        c = storage.count()
+        self.assertEqual(len(storage.all()), c)
